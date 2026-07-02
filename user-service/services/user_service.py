@@ -1,6 +1,10 @@
+# pyrefly: ignore [missing-import]
 from supabase import Client
+# pyrefly: ignore [missing-import]
 from schemas.user import UserCreate, UserUpdate, UserRoleUpdate
+# pyrefly: ignore [missing-import]
 from core.security import get_password_hash
+# pyrefly: ignore [missing-import]
 from fastapi import HTTPException, status
 import uuid
 

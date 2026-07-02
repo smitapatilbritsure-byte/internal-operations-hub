@@ -1,9 +1,14 @@
 from typing import Any, List
+# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends, HTTPException
+# pyrefly: ignore [missing-import]
 from supabase import Client
 
+# pyrefly: ignore [missing-import]
 from schemas.user import UserCreate, UserUpdate, UserResponse, UserRoleUpdate, TokenData
+# pyrefly: ignore [missing-import]
 from core.dependencies import get_db, get_current_user, get_current_admin_user
+# pyrefly: ignore [missing-import]
 from services.user_service import UserService
 
 router = APIRouter()

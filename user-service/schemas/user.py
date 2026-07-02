@@ -1,3 +1,4 @@
+# pyrefly: ignore [missing-import]
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 from datetime import datetime
@@ -11,6 +12,11 @@ class UserRole(str, Enum):
 class UserBase(BaseModel):
     full_name: str
     email: EmailStr
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
 
 class UserCreate(UserBase):
     password: str = Field(min_length=8)
