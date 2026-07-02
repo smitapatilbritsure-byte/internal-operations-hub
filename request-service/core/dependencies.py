@@ -5,24 +5,29 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt, JWTError
+from pydantic import BaseModel
+from typing import Optional, Dict, Any
 from core.config import settings
 from shared.supabase_client import get_supabase_client
 from supabase import Client
-from typing import Dict, Any
 
-oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="/api/v1/auth/login" # Point to the auth/login of user-service for convenience
-)
+security = HTTPBearer()
+
+class TokenData(BaseModel):
+    id: Optional[str] = None
+    email: Optional[str] = None
+    role: Optional[str] = None
 
 def get_db() -> Client:
     return get_supabase_client()
 
 def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Client = Depends(get_db)
-) -> Dict[str, Any]:
+) -> TokenData:
+    token = credentials.credentials
     try:
         payload = jwt.decode(
             token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
@@ -55,17 +60,17 @@ def get_current_user(
             detail="Inactive user",
         )
         
-    return user
+    return TokenData(id=str(user.get("id")), email=email, role=role)
 
 def get_current_active_user(
-    current_user: Dict[str, Any] = Depends(get_current_user),
-) -> Dict[str, Any]:
+    current_user: TokenData = Depends(get_current_user),
+) -> TokenData:
     return current_user
 
 def get_current_admin_user(
-    current_user: Dict[str, Any] = Depends(get_current_active_user),
-) -> Dict[str, Any]:
-    if current_user.get("role") != "admin":
+    current_user: TokenData = Depends(get_current_active_user),
+) -> TokenData:
+    if current_user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="The user doesn't have enough privileges",

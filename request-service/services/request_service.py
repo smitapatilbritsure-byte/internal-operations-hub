@@ -2,14 +2,15 @@ from supabase import Client
 from fastapi import HTTPException, status
 from schemas.request import RequestCreate, RequestOverride, RequestStatus
 from typing import Dict, Any, List
+from core.dependencies import TokenData
 
 class RequestService:
     def __init__(self, db: Client):
         self.db = db
 
-    def create_request(self, request_in: RequestCreate, user: Dict[str, Any]) -> Dict[str, Any]:
-        user_role = user.get("role")
-        user_id = user.get("id")
+    def create_request(self, request_in: RequestCreate, user: TokenData) -> Dict[str, Any]:
+        user_role = user.role
+        user_id = user.id
         
         # Logic gate: Auto-approve requests created by admins
         if user_role == "admin":
@@ -37,7 +38,7 @@ class RequestService:
             )
         return response.data[0]
 
-    def get_request_by_id(self, request_id: str, user: Dict[str, Any]) -> Dict[str, Any]:
+    def get_request_by_id(self, request_id: str, user: TokenData) -> Dict[str, Any]:
         response = self.db.table("requests").select("*").eq("id", request_id).execute()
         if not response.data:
             raise HTTPException(
@@ -47,24 +48,24 @@ class RequestService:
         
         req = response.data[0]
         # Standard users can only view their own requests
-        if user.get("role") != "admin" and req.get("user_id") != str(user.get("id")):
+        if user.role != "admin" and req.get("user_id") != str(user.id):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Not enough permissions to access this request"
             )
         return req
 
-    def get_all_requests(self, user: Dict[str, Any], skip: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
+    def get_all_requests(self, user: TokenData, skip: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
         query = self.db.table("requests").select("*")
         
         # Standard users see only their own requests
-        if user.get("role") != "admin":
-            query = query.eq("user_id", str(user.get("id")))
+        if user.role != "admin":
+            query = query.eq("user_id", str(user.id))
             
         response = query.range(skip, skip + limit - 1).execute()
         return response.data
 
-    def override_request(self, request_id: str, override_in: RequestOverride, admin_user: Dict[str, Any]) -> Dict[str, Any]:
+    def override_request(self, request_id: str, override_in: RequestOverride, admin_user: TokenData) -> Dict[str, Any]:
         # Get existing request
         response = self.db.table("requests").select("*").eq("id", request_id).execute()
         if not response.data:
@@ -83,7 +84,7 @@ class RequestService:
         # Update request status
         update_data = {
             "status": override_in.status.value,
-            "override_by": str(admin_user.get("id")),
+            "override_by": str(admin_user.id),
             "override_reason": override_in.override_reason
         }
 
