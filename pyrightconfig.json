@@ -1,0 +1,10 @@
+{
+  "extraPaths": [
+    "user-service",
+    "audit-service",
+    "request-service",
+    "shared"
+  ],
+  "venvPath": "user-service",
+  "venv": "venv"
+}
