@@ -1,26 +1,31 @@
+# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
 from typing import Any
+# pyrefly: ignore [missing-import]
 from supabase import Client
 
+# pyrefly: ignore [missing-import]
 from core.dependencies import get_db
+# pyrefly: ignore [missing-import]
 from core.security import verify_password, create_access_token
-from schemas.user import Token
+# pyrefly: ignore [missing-import]
+from schemas.user import Token, UserLogin
+# pyrefly: ignore [missing-import]
 from services.user_service import UserService
 
 router = APIRouter()
 
 @router.post("/login", response_model=Token)
 def login_access_token(
-    db: Client = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()
+    login_data: UserLogin, db: Client = Depends(get_db)
 ) -> Any:
     """
-    OAuth2 compatible token login, get an access token for future requests
+    Login to get an access token for future requests
     """
     user_service = UserService(db)
-    user = user_service.get_user_by_email(email=form_data.username)
+    user = user_service.get_user_by_email(email=login_data.email)
     
-    if not user or not verify_password(form_data.password, user["password_hash"]):
+    if not user or not verify_password(login_data.password, user["password_hash"]):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Incorrect email or password"

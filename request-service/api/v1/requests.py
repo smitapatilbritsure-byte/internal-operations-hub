@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from supabase import Client
 from typing import List, Any
-from core.dependencies import get_db, get_current_active_user, get_current_admin_user
+from core.dependencies import get_db, get_current_active_user, get_current_admin_user, TokenData
 from schemas.request import RequestCreate, RequestResponse, RequestOverride
 from services.request_service import RequestService
 
@@ -11,7 +11,7 @@ router = APIRouter()
 def create_request(
     request_in: RequestCreate,
     db: Client = Depends(get_db),
-    current_user: dict = Depends(get_current_active_user)
+    current_user: TokenData = Depends(get_current_active_user)
 ) -> Any:
     """
     Create a new request.
@@ -26,7 +26,7 @@ def get_requests(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
     db: Client = Depends(get_db),
-    current_user: dict = Depends(get_current_active_user)
+    current_user: TokenData = Depends(get_current_active_user)
 ) -> Any:
     """
     List requests.
@@ -40,7 +40,7 @@ def get_requests(
 def get_request(
     request_id: str,
     db: Client = Depends(get_db),
-    current_user: dict = Depends(get_current_active_user)
+    current_user: TokenData = Depends(get_current_active_user)
 ) -> Any:
     """
     Get details of a specific request by ID.
@@ -54,7 +54,7 @@ def override_request(
     request_id: str,
     override_in: RequestOverride,
     db: Client = Depends(get_db),
-    current_admin: dict = Depends(get_current_admin_user)
+    current_admin: TokenData = Depends(get_current_admin_user)
 ) -> Any:
     """
     Override status of a pending request (Approve/Reject).

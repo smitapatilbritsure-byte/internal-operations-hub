@@ -1,0 +1,9 @@
+{
+  "python.analysis.extraPaths": [
+    "./user-service",
+    "./audit-service",
+    "./request-service",
+    "./shared"
+  ],
+  "python.defaultInterpreterPath": "${workspaceFolder}/user-service/venv/Scripts/python.exe"
+}

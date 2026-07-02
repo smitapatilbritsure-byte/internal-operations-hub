@@ -4,25 +4,32 @@ import os
 # Ensure we can import from shared
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
+# pyrefly: ignore [missing-import]
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+# pyrefly: ignore [missing-import]
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+# pyrefly: ignore [missing-import]
 from jose import jwt, JWTError
+# pyrefly: ignore [missing-import]
 from pydantic import ValidationError
+# pyrefly: ignore [missing-import]
 from core.config import settings
+# pyrefly: ignore [missing-import]
 from schemas.user import TokenData
+# pyrefly: ignore [missing-import]
 from shared.supabase_client import get_supabase_client
+# pyrefly: ignore [missing-import]
 from supabase import Client
 
-oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl=f"{settings.API_V1_STR}/auth/login"
-)
+security = HTTPBearer()
 
 def get_db() -> Client:
     return get_supabase_client()
 
 def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> TokenData:
+    token = credentials.credentials
     try:
         payload = jwt.decode(
             token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
